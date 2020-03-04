@@ -1,4 +1,4 @@
-package cmclient
+package cmcapiclient
 
 import (
 	"math"

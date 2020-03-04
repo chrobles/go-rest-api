@@ -7,15 +7,15 @@ import (
 	"log"
 	"os"
 
-	"github.com/chrobles/go-rest-api/cmclient"
+	"github.com/chrobles/go-rest-api/cmcapiclient"
 	"github.com/davecgh/go-spew/spew"
 )
 
 func main() {
 	var (
 		// coinmarketcap API client
-		cmClient cmclient.Client
-		apiKey   string
+		marketclient cmcapiclient.Client
+		apiKey       string
 
 		// cli flags
 		local     bool
@@ -26,7 +26,7 @@ func main() {
 		start     string
 
 		// response data
-		res cmclient.RangeData
+		res cmcapiclient.RangeData
 	)
 
 	flag.BoolVar(&local, "l", true, "Read items from local disk.")
@@ -38,26 +38,30 @@ func main() {
 	flag.Parse()
 
 	if !local {
-		// cm client configuration
+		// marketclient configuration
 		apiKey = os.Getenv("CM_API_KEY")
 		if apiKey == "" {
 			log.Print("CM_API_KEY not found")
 			os.Exit(1)
 		}
-		cmClient.Key = apiKey
-		cmClient.Address = "https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/listings/latest"
-		req := cmClient.NewRangeRequest(start, limit)
-		res = cmClient.Get(req)
+		marketclient.Key = apiKey
+		marketclient.Address = "https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/listings/latest"
+		req := marketclient.NewRangeRequest(start, limit)
+		res = marketclient.Get(req)
 	} else {
 		data, _ := ioutil.ReadFile("data.json")
 		json.Unmarshal(data, &res)
 	}
 
-	if dump {
+	if verbose {
 		spew.Dump(res)
 	}
 
-	if upsert {
-		spew.Dump(upsert)
+	if useblob {
+		spew.Dump(useblob)
+	}
+
+	if usecosmos {
+		spew.Dump(usecosmos)
 	}
 }
