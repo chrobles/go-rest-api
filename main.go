@@ -18,22 +18,23 @@ func main() {
 		apiKey   string
 
 		// cli flags
-		local  bool
-		start  string
-		limit  string
-		dump   bool
-		upsert bool
+		local     bool
+		useblob   bool
+		usecosmos bool
+		verbose   bool
+		limit     string
+		start     string
 
 		// response data
 		res cmclient.RangeData
 	)
 
-	flag.BoolVar(&local, "local", true, "Fetch items from disk instead of public API.")
-	flag.StringVar(&start, "start", "1", "Offset the start (1-based index) of the paginated list of items to return.")
+	flag.BoolVar(&local, "l", true, "Read items from local disk.")
+	flag.BoolVar(&useblob, "use-blob", false, "Write items to Azure Blob.")
+	flag.BoolVar(&usecosmos, "use-cosmos", false, "Write items to CosmosDB.")
+	flag.BoolVar(&verbose, "v", false, "Verbose logging.")
 	flag.StringVar(&limit, "limit", "100", "Specify the number of results to return. Use this parameter and the \"start\" parameter to determine your own pagination size.")
-	flag.BoolVar(&dump, "dump", false, "Dump items to stdout.")
-	flag.BoolVar(&upsert, "upsert", false, "Upsert items into storage.")
-
+	flag.StringVar(&start, "start", "1", "Offset the start (1-based index) of the paginated list of items to return.")
 	flag.Parse()
 
 	if !local {
