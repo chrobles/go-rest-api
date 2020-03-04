@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"time"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 // Client : client for interacting with coinmarketcap API
@@ -74,12 +72,12 @@ func (client *Client) NewRangeRequest(start string, limit string) *http.Request 
 }
 
 // Get : do a request and return the results
-func (client *Client) Get(req *http.Request) {
+func (client *Client) Get(req *http.Request) RangeData {
 	res, _ := http.DefaultClient.Do(req)
 	defer res.Body.Close()
 
 	var resData RangeData
 	_ = json.NewDecoder(res.Body).Decode(&resData)
 
-	spew.Dump(resData.Data)
+	return resData
 }
