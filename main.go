@@ -1,22 +1,25 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
-	"io/ioutil"
-	"log"
-	"os"
 
-	"github.com/chrobles/go-rest-api/cmcapiclient"
-	"github.com/davecgh/go-spew/spew"
+	"github.com/gin-gonic/gin"
+	"github.com/kelseyhightower/envconfig"
 )
+
+// Config : captures app config from env
+type Config struct {
+	CoinMarketCap struct {
+		Key string `envconfig:"CMC_API_KEY"`
+	}
+	AzureBlob struct {
+	}
+	CosmosDB struct {
+	}
+}
 
 func main() {
 	var (
-		// coinmarketcap API client
-		marketclient cmcapiclient.Client
-		apiKey       string
-
 		// cli flags
 		local     bool
 		useblob   bool
@@ -25,9 +28,11 @@ func main() {
 		limit     string
 		start     string
 
-		// response data
-		res cmcapiclient.RangeData
+		// app config
+		cfg Config
 	)
+
+	_ = envconfig.Process("", &cfg)
 
 	flag.BoolVar(&local, "l", true, "Read items from local disk.")
 	flag.BoolVar(&useblob, "use-blob", false, "Write items to Azure Blob.")
@@ -37,31 +42,11 @@ func main() {
 	flag.StringVar(&start, "start", "1", "Offset the start (1-based index) of the paginated list of items to return.")
 	flag.Parse()
 
-	if !local {
-		// marketclient configuration
-		apiKey = os.Getenv("CM_API_KEY")
-		if apiKey == "" {
-			log.Print("CM_API_KEY not found")
-			os.Exit(1)
-		}
-		marketclient.Key = apiKey
-		marketclient.Address = "https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/listings/latest"
-		req := marketclient.NewRangeRequest(start, limit)
-		res = marketclient.Get(req)
-	} else {
-		data, _ := ioutil.ReadFile("data.json")
-		json.Unmarshal(data, &res)
-	}
-
-	if verbose {
-		spew.Dump(res)
-	}
-
-	if useblob {
-		spew.Dump(useblob)
-	}
-
-	if usecosmos {
-		spew.Dump(usecosmos)
-	}
+	r := gin.Default()
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "pong",
+		})
+	})
+	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
