@@ -2,7 +2,7 @@ package types
 
 import "time"
 
-// CMCResponse : resulting json from query against cmc API
+// MarketListings : resulting json from query against cmc API
 type MarketListings struct {
 	Status struct {
 		Timestamp    time.Time   `json:"timestamp"`

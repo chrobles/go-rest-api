@@ -61,9 +61,8 @@ func main() {
 
 		mktdata, err = cmcclient.GetMarketListings(start, limit)
 		if err != nil {
-			log.Print(err)
 			c.JSON(400, gin.H{
-				"error": err,
+				"error": err.Error(),
 			})
 		} else {
 			c.JSON(200, mktdata)

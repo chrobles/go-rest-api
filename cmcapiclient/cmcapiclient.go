@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -14,22 +13,26 @@ import (
 
 // Client : client for interacting with coinmarketcap API
 type Client struct {
-	BaseURL  string
-	Key      string
-	UseLocal bool
+	BaseURL       string
+	Key           string
+	LocalDataPath string
+	UseLocal      bool
 }
 
 // Configure : apply client configuration
 func (client *Client) Configure(cfg types.Config) error {
 	client.BaseURL = cfg.CoinMarketCap.BaseURL
 	client.Key = cfg.CoinMarketCap.Key
+	client.LocalDataPath = cfg.CoinMarketCap.LocalDataPath
 	client.UseLocal = cfg.CoinMarketCap.UseLocal
 
 	if !client.UseLocal && client.Key == "" {
-		return errors.New("env var CMC_API_KEY missing")
+		return errors.New("CMC_USE_LOCAL=false requires CMC_API_KEY")
 	}
 
-	log.Print("serving market data from disk")
+	if client.UseLocal && client.LocalDataPath == "" {
+		return errors.New("CMC_USE_LOCAL=true requires CMC_LOCAL_DATA_PATH")
+	}
 
 	return nil
 }
@@ -90,7 +93,7 @@ func (client *Client) DoLocal(limit int) (*types.MarketListings, error) {
 		mktdata *types.MarketListings
 	)
 
-	data, err = ioutil.ReadFile("data.json")
+	data, err = ioutil.ReadFile(client.LocalDataPath)
 	if err != nil {
 		return nil, err
 	}
