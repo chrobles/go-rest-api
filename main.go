@@ -1,52 +1,39 @@
 package main
 
 import (
-	"flag"
 	"fmt"
+	"log"
 	"strconv"
 
+	"github.com/chrobles/go-rest-api/types"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 )
 
-// Config : captures app config from env
-type Config struct {
-	App struct {
-		Local bool `envconfig:"USE_LOCAL"`
+var (
+	cfg types.Config
+)
+
+func init() {
+	// load vars from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err.Error())
 	}
-	CoinMarketCap struct {
-		Key string `envconfig:"CMC_API_KEY"`
-	}
-	AzureBlob struct {
-	}
-	CosmosDB struct {
+
+	// parse config to struct
+	err = envconfig.Process("", &cfg)
+	if err != nil {
+		log.Fatal(err.Error())
 	}
 }
 
 func main() {
-	var (
-		// cli flags
-		local     bool
-		useblob   bool
-		usecosmos bool
-		verbose   bool
-
-		// app config
-		cfg Config
-	)
-
-	_ = envconfig.Process("", &cfg)
-
-	flag.BoolVar(&local, "l", true, "Read items from local disk.")
-	flag.BoolVar(&useblob, "use-blob", false, "Write items to Azure Blob.")
-	flag.BoolVar(&usecosmos, "use-cosmos", false, "Write items to CosmosDB.")
-	flag.BoolVar(&verbose, "v", false, "Verbose logging.")
-	flag.Parse()
-
 	r := gin.Default()
 	r.GET("/getcmc/:limit", func(c *gin.Context) {
-		limit, _ := strconv.ParseInt(c.Param("limit"))
-		start, _ := strconv.ParseInt(c.DefaultQuery("start", "1"))
+		limit, _ := strconv.Atoi(c.Param("limit"))
+		start, _ := strconv.Atoi(c.DefaultQuery("start", "1"))
 		blob, _ := strconv.ParseBool(c.DefaultQuery("useblob", "false"))
 		cosmos, _ := strconv.ParseBool(c.DefaultQuery("usecosmos", "false"))
 
@@ -54,6 +41,7 @@ func main() {
 
 		c.JSON(200, gin.H{
 			"limit":     limit,
+			"start":     start,
 			"useblob":   blob,
 			"usecosmos": cosmos,
 			"config":    cfg,
