@@ -69,9 +69,9 @@ func main() {
 			c.JSON(200, mktdata)
 		}
 
-		if blob == true {
+		if blob {
 		}
-		if cosmos == true {
+		if cosmos {
 		}
 	})
 	r.Run() // listen and serve on 0.0.0.0:8080

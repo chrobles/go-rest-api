@@ -25,11 +25,11 @@ func (client *Client) Configure(cfg types.Config) error {
 	client.Key = cfg.CoinMarketCap.Key
 	client.UseLocal = cfg.CoinMarketCap.UseLocal
 
-	if client.UseLocal == true {
-		log.Print("Serving local market data.")
-	} else if client.Key == "" {
-		return errors.New("CMC_API_KEY Not Found.")
+	if !client.UseLocal && client.Key == "" {
+		return errors.New("env var CMC_API_KEY missing")
 	}
+
+	log.Print("serving market data from disk")
 
 	return nil
 }
@@ -59,7 +59,7 @@ func (client *Client) NewMarketRequest(start int, limit int) (*http.Request, err
 	return req, nil
 }
 
-// Get : do a request for market listings from cmc api
+// Do : do a request for market listings from cmc api
 func (client *Client) Do(req *http.Request) (*types.MarketListings, error) {
 	var (
 		err     error
@@ -111,16 +111,15 @@ func (client *Client) DoLocal(limit int) (*types.MarketListings, error) {
 // GetMarketListings : get market listing data from disk or from cmc api
 func (client *Client) GetMarketListings(start int, limit int) (*types.MarketListings, error) {
 	if limit > 5000 {
-		return nil, errors.New("Limit must be less than or equal to 5000.")
+		return nil, errors.New("limit must be less than or equal to 5000")
 	}
 
-	if client.UseLocal == true {
-		return client.DoLocal(limit)
-	} else {
+	if !client.UseLocal {
 		req, err := client.NewMarketRequest(start, limit)
 		if err != nil {
 			return nil, err
 		}
 		return client.Do(req)
 	}
+	return client.DoLocal(limit)
 }
