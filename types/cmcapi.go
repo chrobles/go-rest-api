@@ -19,9 +19,9 @@ type MarketListings struct {
 		NumMarketPairs    int         `json:"num_market_pairs"`
 		DateAdded         time.Time   `json:"date_added"`
 		Tags              []string    `json:"tags"`
-		MaxSupply         int         `json:"max_supply"`
-		CirculatingSupply int         `json:"circulating_supply"`
-		TotalSupply       int         `json:"total_supply"`
+		MaxSupply         float64     `json:"max_supply"`
+		CirculatingSupply float64     `json:"circulating_supply"`
+		TotalSupply       float64     `json:"total_supply"`
 		Platform          interface{} `json:"platform"`
 		CmcRank           int         `json:"cmc_rank"`
 		LastUpdated       time.Time   `json:"last_updated"`

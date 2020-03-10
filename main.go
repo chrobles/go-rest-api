@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"strconv"
 
+	"github.com/chrobles/go-rest-api/cmcapiclient"
 	"github.com/chrobles/go-rest-api/types"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -16,6 +16,10 @@ var (
 )
 
 func init() {
+	// defaults
+	cfg.CoinMarketCap.BaseURL = "https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/listings/latest"
+	cfg.CoinMarketCap.UseLocal = true
+
 	// load vars from .env file
 	err := godotenv.Load()
 	if err != nil {
@@ -30,22 +34,45 @@ func init() {
 }
 
 func main() {
+	var (
+		cmcclient cmcapiclient.Client
+		err       error
+	)
+
+	err = cmcclient.Configure(cfg)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
 	r := gin.Default()
 	r.GET("/getcmc/:limit", func(c *gin.Context) {
-		limit, _ := strconv.Atoi(c.Param("limit"))
-		start, _ := strconv.Atoi(c.DefaultQuery("start", "1"))
-		blob, _ := strconv.ParseBool(c.DefaultQuery("useblob", "false"))
-		cosmos, _ := strconv.ParseBool(c.DefaultQuery("usecosmos", "false"))
+		var (
+			limit   int
+			start   int
+			blob    bool
+			cosmos  bool
+			mktdata *types.MarketListings
+		)
 
-		fmt.Print(limit, blob, cosmos)
+		limit, _ = strconv.Atoi(c.Param("limit"))
+		start, _ = strconv.Atoi(c.DefaultQuery("start", "1"))
+		blob, _ = strconv.ParseBool(c.DefaultQuery("useblob", "false"))
+		cosmos, _ = strconv.ParseBool(c.DefaultQuery("usecosmos", "false"))
 
-		c.JSON(200, gin.H{
-			"limit":     limit,
-			"start":     start,
-			"useblob":   blob,
-			"usecosmos": cosmos,
-			"config":    cfg,
-		})
+		mktdata, err = cmcclient.GetMarketListings(start, limit)
+		if err != nil {
+			log.Print(err)
+			c.JSON(400, gin.H{
+				"error": err,
+			})
+		} else {
+			c.JSON(200, mktdata)
+		}
+
+		if blob == true {
+		}
+		if cosmos == true {
+		}
 	})
-	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	r.Run() // listen and serve on 0.0.0.0:8080
 }
