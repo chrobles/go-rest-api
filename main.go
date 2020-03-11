@@ -1,62 +1,77 @@
 package main
 
 import (
-	"encoding/json"
-	"flag"
-	"io/ioutil"
 	"log"
-	"os"
+	"strconv"
 
-	"github.com/chrobles/go-rest-api/cmclient"
-	"github.com/davecgh/go-spew/spew"
+	"github.com/chrobles/go-rest-api/cmcapiclient"
+	"github.com/chrobles/go-rest-api/types"
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+	"github.com/kelseyhightower/envconfig"
 )
+
+var (
+	cfg types.Config
+)
+
+func init() {
+	// defaults
+	cfg.CoinMarketCap.BaseURL = "https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/listings/latest"
+	cfg.CoinMarketCap.UseLocal = true
+
+	// load vars from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	// parse config to struct
+	err = envconfig.Process("", &cfg)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+}
 
 func main() {
 	var (
-		// coinmarketcap API client
-		cmClient cmclient.Client
-		apiKey   string
-
-		// cli flags
-		local  bool
-		start  string
-		limit  string
-		dump   bool
-		upsert bool
-
-		// response data
-		res cmclient.RangeData
+		cmcclient cmcapiclient.Client
+		err       error
 	)
 
-	flag.BoolVar(&local, "local", true, "Fetch items from disk instead of public API.")
-	flag.StringVar(&start, "start", "1", "Offset the start (1-based index) of the paginated list of items to return.")
-	flag.StringVar(&limit, "limit", "100", "Specify the number of results to return. Use this parameter and the \"start\" parameter to determine your own pagination size.")
-	flag.BoolVar(&dump, "dump", false, "Dump items to stdout.")
-	flag.BoolVar(&upsert, "upsert", false, "Upsert items into storage.")
+	err = cmcclient.Configure(cfg)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
-	flag.Parse()
+	r := gin.Default()
+	r.GET("/getcmc/:limit", func(c *gin.Context) {
+		var (
+			limit   int
+			start   int
+			blob    bool
+			cosmos  bool
+			mktdata *types.MarketListings
+		)
 
-	if !local {
-		// cm client configuration
-		apiKey = os.Getenv("CM_API_KEY")
-		if apiKey == "" {
-			log.Print("CM_API_KEY not found")
-			os.Exit(1)
+		limit, _ = strconv.Atoi(c.Param("limit"))
+		start, _ = strconv.Atoi(c.DefaultQuery("start", "1"))
+		blob, _ = strconv.ParseBool(c.DefaultQuery("useblob", "false"))
+		cosmos, _ = strconv.ParseBool(c.DefaultQuery("usecosmos", "false"))
+
+		mktdata, err = cmcclient.GetMarketListings(start, limit)
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": err.Error(),
+			})
+		} else {
+			c.JSON(200, mktdata)
 		}
-		cmClient.Key = apiKey
-		cmClient.Address = "https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/listings/latest"
-		req := cmClient.NewRangeRequest(start, limit)
-		res = cmClient.Get(req)
-	} else {
-		data, _ := ioutil.ReadFile("data.json")
-		json.Unmarshal(data, &res)
-	}
 
-	if dump {
-		spew.Dump(res)
-	}
-
-	if upsert {
-		spew.Dump(upsert)
-	}
+		if blob {
+		}
+		if cosmos {
+		}
+	})
+	r.Run() // listen and serve on 0.0.0.0:8080
 }
