@@ -136,31 +136,6 @@ func TestNewMarketRequest(t *testing.T) {
 	}
 }
 
-func TestDo(t *testing.T) {
-	// var (
-	// 	cmcclient  Client
-	// 	err        error
-	// 	testserver *httptest.Server
-	// )
-
-	// // Start a local HTTP server
-	// testserver = httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-	// 	// Test request parameters
-	// 	equals(t, req.URL.String(), "/some/path")
-	// 	// Send response to be tested
-	// 	rw.Write([]byte(`OK`))
-	// }))
-	// // Close the server when test finishes
-	// defer server.Close()
-
-	// // Use Client & URL from our local test server
-	// api := API{server.Client(), server.URL}
-	// body, err := api.DoStuff()
-
-	// ok(t, err)
-	// equals(t, []byte("OK"), body)
-}
-
 func TestDoLocal(t *testing.T) {
 	var (
 		cmcclient cmcapiclient.Client
