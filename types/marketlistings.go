@@ -1,21 +1,9 @@
-package cmclient
+package types
 
-import (
-	"encoding/json"
-	"log"
-	"net/http"
-	"net/url"
-	"time"
-)
+import "time"
 
-// Client : client for interacting with coinmarketcap API
-type Client struct {
-	Key     string
-	Address string
-}
-
-// RangeData : resulting json from query against cm API
-type RangeData struct {
+// MarketListings : resulting json from query against cmc API
+type MarketListings struct {
 	Status struct {
 		Timestamp    time.Time   `json:"timestamp"`
 		ErrorCode    int         `json:"error_code"`
@@ -31,9 +19,9 @@ type RangeData struct {
 		NumMarketPairs    int         `json:"num_market_pairs"`
 		DateAdded         time.Time   `json:"date_added"`
 		Tags              []string    `json:"tags"`
-		MaxSupply         int         `json:"max_supply"`
-		CirculatingSupply int         `json:"circulating_supply"`
-		TotalSupply       int         `json:"total_supply"`
+		MaxSupply         float64     `json:"max_supply"`
+		CirculatingSupply float64     `json:"circulating_supply"`
+		TotalSupply       float64     `json:"total_supply"`
 		Platform          interface{} `json:"platform"`
 		CmcRank           int         `json:"cmc_rank"`
 		LastUpdated       time.Time   `json:"last_updated"`
@@ -49,35 +37,4 @@ type RangeData struct {
 			} `json:"USD"`
 		} `json:"quote"`
 	} `json:"data"`
-}
-
-// NewRangeRequest : generate a request for a range of data from coinmarketcap API
-func (client *Client) NewRangeRequest(start string, limit string) *http.Request {
-	req, err := http.NewRequest("GET", client.Address, nil)
-	if err != nil {
-		log.Print(err)
-		return nil
-	}
-
-	query := url.Values{}
-	query.Add("start", start)
-	query.Add("limit", limit)
-	query.Add("convert", "USD")
-
-	req.Header.Set("Accepts", "application/json")
-	req.Header.Add("X-CMC_PRO_API_KEY", client.Key)
-	req.URL.RawQuery = query.Encode()
-
-	return req
-}
-
-// Get : do a request and return the results
-func (client *Client) Get(req *http.Request) RangeData {
-	res, _ := http.DefaultClient.Do(req)
-	defer res.Body.Close()
-
-	var resData RangeData
-	_ = json.NewDecoder(res.Body).Decode(&resData)
-
-	return resData
 }
