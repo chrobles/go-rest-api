@@ -7,4 +7,5 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/stretchr/testify v1.4.0
+	go.mongodb.org/mongo-driver v1.3.1 // indirect
 )
