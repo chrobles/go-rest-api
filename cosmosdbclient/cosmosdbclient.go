@@ -1,31 +1,88 @@
 package cosmosdbclient
 
 import (
-	"github.com/chrobles/go-rest-api/types"
+	"context"
+	"errors"
+	"time"
 
-    "go.mongodb.org/mongo-driver/mongo"
-    "go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/chrobles/go-rest-api/types"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-
+// Client : client for interacting with cosmosdb
 type Client struct {
-	Database string
-	Password string
+	Connstr string
+	Client  *mongo.Client
 }
 
+// Record : data to be indexed in cosmosdb
 type Record struct {
-	Id       string
+	ID       uuid.UUID
 	Listings types.MarketListings
 }
 
-ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
+// Configure : apply client configuration
+func (client *Client) Configure(cfg types.Config) error {
+	var (
+		err error
+	)
 
-ctx, _ = context.WithTimeout(context.Background(), 2*time.Second)
-err = client.Ping(ctx, readpref.Primary())
+	client.Connstr = cfg.CosmosDB.Connstr
+	if client.Connstr == "" {
+		return errors.New("cosmsosdb requires CDB_CONN_STR")
+	}
 
-collection := client.Database("testing").Collection("numbers")
+	client.Client, err = mongo.NewClient(options.Client().ApplyURI(client.Connstr))
+	if err != nil {
+		return err
+	}
 
-ctx, _ = context.WithTimeout(context.Background(), 5*time.Second)
-res, err := collection.InsertOne(ctx, bson.M{"name": "pi", "value": 3.14159})
-id := res.InsertedID
+	return nil
+}
+
+// Index : index market listing data in cosmosdb
+func (client *Client) Index(listings *types.MarketListings) (interface{}, error) {
+	var (
+		cancel     context.CancelFunc
+		collection *mongo.Collection
+		ctx        context.Context
+		err        error
+		id         interface{}
+		uid        uuid.UUID
+		record     *Record
+		res        *mongo.InsertOneResult
+	)
+
+	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err = client.Client.Connect(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	uid, err = uuid.NewUUID()
+	if err != nil {
+		return nil, err
+	}
+
+	record = new(Record)
+	record.ID = uid
+	record.Listings = *listings
+
+	collection = client.Client.Database("base").Collection("container")
+
+	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err = collection.InsertOne(ctx, record)
+	if err != nil {
+		return nil, err
+	}
+	spew.Dump(res)
+
+	return id, nil
+}

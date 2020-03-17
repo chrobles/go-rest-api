@@ -2,7 +2,6 @@ package types
 
 // Config : captures app config from env
 type Config struct {
-	AzureBlob     AzureBlobConfig
 	CosmosDB      CosmosDbConfig
 	CoinMarketCap CoinMarketCapConfig
 }
@@ -15,10 +14,7 @@ type CoinMarketCapConfig struct {
 	UseLocal      bool   `envconfig:"CMC_USE_LOCAL"`
 }
 
-// AzureBlobConfig : config for az blob client
-type AzureBlobConfig struct {
-}
-
 // CosmosDbConfig : config for cosmosdb client
 type CosmosDbConfig struct {
+	Connstr string `envconfig:"CDB_CONN_STR"`
 }
