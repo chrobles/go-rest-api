@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/chrobles/go-rest-api/cmcapiclient"
@@ -28,60 +27,28 @@ func TestConfigure(t *testing.T) {
 	cfgvalid = []types.Config{
 		{
 			CoinMarketCap: types.CoinMarketCapConfig{
-				BaseURL:       "",
-				Key:           "",
-				LocalDataPath: "test-data-path",
-				UseLocal:      true,
+				Key:      "",
+				UseLocal: true,
 			},
 		},
 		{
 			CoinMarketCap: types.CoinMarketCapConfig{
-				BaseURL:       "",
-				Key:           "test-api-key",
-				LocalDataPath: "test-data-path",
-				UseLocal:      true,
+				Key:      "test-api-key",
+				UseLocal: true,
 			},
 		},
 		{
 			CoinMarketCap: types.CoinMarketCapConfig{
-				BaseURL:       "",
-				Key:           "test-api-key",
-				LocalDataPath: "",
-				UseLocal:      false,
+				Key:      "test-api-key",
+				UseLocal: false,
 			},
 		},
 	}
 	cfginvalid = []types.Config{
 		{
 			CoinMarketCap: types.CoinMarketCapConfig{
-				BaseURL:       "",
-				Key:           "",
-				LocalDataPath: "",
-				UseLocal:      false,
-			},
-		},
-		{
-			CoinMarketCap: types.CoinMarketCapConfig{
-				BaseURL:       "",
-				Key:           "",
-				LocalDataPath: "test-data-path",
-				UseLocal:      false,
-			},
-		},
-		{
-			CoinMarketCap: types.CoinMarketCapConfig{
-				BaseURL:       "",
-				Key:           "",
-				LocalDataPath: "",
-				UseLocal:      true,
-			},
-		},
-		{
-			CoinMarketCap: types.CoinMarketCapConfig{
-				BaseURL:       "",
-				Key:           "test-api-key",
-				LocalDataPath: "",
-				UseLocal:      true,
+				Key:      "",
+				UseLocal: false,
 			},
 		},
 	}
@@ -151,7 +118,7 @@ func TestDoLocal(t *testing.T) {
 	pwd, err = os.Getwd()
 	assert.Nil(t, err)
 
-	datapath = strings.Split(pwd, "go-rest-api/")[0] + "go-rest-api/data.json"
+	datapath = pwd + "/../data.json"
 	cmcclient.LocalDataPath = datapath
 
 	for _, l := range limits {

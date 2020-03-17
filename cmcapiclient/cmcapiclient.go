@@ -23,15 +23,11 @@ type Client struct {
 func (client *Client) Configure(cfg types.Config) error {
 	client.BaseURL = cfg.CoinMarketCap.BaseURL
 	client.Key = cfg.CoinMarketCap.Key
-	client.LocalDataPath = cfg.CoinMarketCap.LocalDataPath
+	client.LocalDataPath = cfg.Root + "/data.json"
 	client.UseLocal = cfg.CoinMarketCap.UseLocal
 
 	if !client.UseLocal && client.Key == "" {
 		return errors.New("CMC_USE_LOCAL=false requires CMC_API_KEY")
-	}
-
-	if client.UseLocal && client.LocalDataPath == "" {
-		return errors.New("CMC_USE_LOCAL=true requires CMC_LOCAL_DATA_PATH")
 	}
 
 	return nil
@@ -40,12 +36,15 @@ func (client *Client) Configure(cfg types.Config) error {
 // NewMarketRequest : generate a request for a range of data from coinmarketcap API
 func (client *Client) NewMarketRequest(start int, limit int) (*http.Request, error) {
 	var (
-		err   error
-		query url.Values
-		req   *http.Request
+		err    error
+		query  url.Values
+		req    *http.Request
+		requrl string
 	)
 
-	req, err = http.NewRequest("GET", client.BaseURL, nil)
+	requrl = client.BaseURL + "/v1/cryptocurrency/listings/latest"
+
+	req, err = http.NewRequest("GET", requrl, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +104,10 @@ func (client *Client) DoLocal(limit int) (*types.MarketListings, error) {
 
 	if limit > len(mktdata.Data) {
 		limit = len(mktdata.Data) + 1
+	} else if limit < 0 {
+		limit = 0
 	}
+
 	mktdata.Data = mktdata.Data[:limit]
 
 	return mktdata, nil
