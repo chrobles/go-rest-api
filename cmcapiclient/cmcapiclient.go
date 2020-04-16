@@ -23,15 +23,11 @@ type Client struct {
 func (client *Client) Configure(cfg types.Config) error {
 	client.BaseURL = cfg.CoinMarketCap.BaseURL
 	client.Key = cfg.CoinMarketCap.Key
-	client.LocalDataPath = cfg.CoinMarketCap.LocalDataPath
+	client.LocalDataPath = cfg.Root + "/data.json"
 	client.UseLocal = cfg.CoinMarketCap.UseLocal
 
 	if !client.UseLocal && client.Key == "" {
 		return errors.New("CMC_USE_LOCAL=false requires CMC_API_KEY")
-	}
-
-	if client.UseLocal && client.LocalDataPath == "" {
-		return errors.New("CMC_USE_LOCAL=true requires CMC_LOCAL_DATA_PATH")
 	}
 
 	return nil
