@@ -80,7 +80,7 @@ func main() {
 
 		limit, _ = strconv.Atoi(c.Param("limit"))
 		start, _ = strconv.Atoi(c.DefaultQuery("start", "1"))
-		cosmos, _ = strconv.ParseBool(c.DefaultQuery("usecosmos", "false"))
+		cosmos, _ = strconv.ParseBool(c.DefaultQuery("cosmos", "false"))
 
 		mktdata, err = cmcclient.GetMarketListings(start, limit)
 		if err != nil {
