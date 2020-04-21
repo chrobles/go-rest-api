@@ -12,7 +12,7 @@ randomization_level     = 8
 
 deployment_targets = [{
   app_name                 = "cobalt-backend-api",
-  image_name               = "msftcse/az-service-single-region",
+  image_name               = "chrobles/go-rest-api",
   image_release_tag_prefix = "release"
 }]
-acr_build_git_source_url = "https://github.com/erikschlegel/echo-server.git"
+acr_build_git_source_url = "https://github.com/chrobles/go-rest-api.git"
