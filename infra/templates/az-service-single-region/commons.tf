@@ -33,15 +33,7 @@ locals {
   admin_rg_name       = "${local.base_name_83}-adm-rg"               // resource group used for admin resources (max 90 chars)
   app_rg_name         = "${local.base_name_83}-app-rg"               // app resource group (max 90 chars)
   sp_name             = "${local.base_name}-sp"                      // service plan
-  ai_name             = "${local.base_name}-ai"                      // app insights
-  kv_name             = "${local.base_name_21}-kv"                   // key vault (max 24 chars)
   acr_name            = "${replace(local.base_name_46, "-", "")}acr" // container registry (max 50 chars, alphanumeric *only*)
-  vnet_name           = "${local.base_name_60}-net"                  // virtual network (max 64 chars)
-  tm_profile_name     = "${local.base_name_60}-tf"                   // traffic manager profile (max 63 chars)
-  tm_endpoint_name    = "${local.region}_${local.app_id}"            // traffic manager endpoint
-  tm_dns_name         = "${local.base_name}-dns"                     // traffic manager dns relative name
-  appgateway_name     = "${local.base_name_76}-gw"                   // app gateway (max 80 chars)
-  public_pip_name     = "${local.base_name_76}-ip"                   // public IP (max 80 chars)
   app_svc_name_prefix = local.base_name
 
   // Resolved TF Vars
