@@ -10,8 +10,6 @@ import (
 	"github.com/chrobles/go-rest-api/types"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
-	"github.com/kelseyhightower/envconfig"
 )
 
 var (
@@ -35,18 +33,7 @@ func init() {
 	// defaults
 	cfg.CoinMarketCap.BaseURL = "https://sandbox-api.coinmarketcap.com"
 	cfg.CoinMarketCap.UseLocal = true
-
-	// load vars from .env file
-	err = godotenv.Load()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	// parse config to struct
-	err = envconfig.Process("", &cfg)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
+	cfg.CosmosDB.UseCosmos = false
 
 	spew.Dump(cfg)
 }
@@ -63,9 +50,11 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	err = cdbclient.Configure(cfg)
-	if err != nil {
-		log.Fatal(err.Error())
+	if cfg.CosmosDB.UseCosmos {
+		err = cdbclient.Configure(cfg)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
 	}
 
 	r := gin.Default()
@@ -80,7 +69,11 @@ func main() {
 
 		limit, _ = strconv.Atoi(c.Param("limit"))
 		start, _ = strconv.Atoi(c.DefaultQuery("start", "1"))
-		cosmos, _ = strconv.ParseBool(c.DefaultQuery("usecosmos", "false"))
+		cosmos, _ = strconv.ParseBool(c.DefaultQuery("cosmos", "false"))
+
+		if cosmos && cfg.CosmosDB.UseCosmos == false {
+			c.JSON(400, gin.H{"error": "CDB_USE_COSMOS = false"})
+		}
 
 		mktdata, err = cmcclient.GetMarketListings(start, limit)
 		if err != nil {
@@ -91,7 +84,7 @@ func main() {
 			c.JSON(200, mktdata)
 		}
 
-		if cosmos {
+		if cosmos && cfg.CosmosDB.UseCosmos == true {
 			var (
 				id  interface{}
 				err error
