@@ -11,7 +11,7 @@ name                    = "az-simple"
 randomization_level     = 8
 
 deployment_targets = [{
-  app_name                 = "cobalt-backend-api",
+  app_name                 = "go-rest-api",
   image_name               = "chrobles/go-rest-api",
   image_release_tag_prefix = "release"
 }]
